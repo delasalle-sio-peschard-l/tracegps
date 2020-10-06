@@ -153,14 +153,21 @@ class Trace
     
     public function getDureeTotale()
     {
-        if($this->getNombrePoints() == 0) return "00:00:00";
+        $heuredebut = date('H',strtotime($this->getDateHeureDebut()));
+        $heurefin = date('H',strtotime($this->getDateHeureFin()));
         
-        $heures = $this->getDureeEnSecondes() / 3600;
-        $reste = $this->getDureeEnSecondes() % 3600;
-        $minutes = $reste / 60;
-        $secondes = $reste % 60;
+        $minutedebut = date('i',strtotime($this->getDateHeureDebut()));
+        $minutefin = date('i',strtotime($this->getDateHeureFin()));
         
-        return $heures . ":" . $minutes . ":" . $secondes;
+        $secondesdebut = date('s',strtotime($this->getDateHeureDebut()));
+        $secondesfin = date('s',strtotime($this->getDateHeureFin()));
+        
+        $heuretotal = $heurefin - $heuredebut;
+        $minutetotal = $minutefin - $minutedebut;
+        $secondestotal = $secondesfin - $secondesdebut;
+        
+        return $heuretotal.":".$minutetotal.":".$secondestotal;
+        
     }
     
     public function getDistanceTotale()
