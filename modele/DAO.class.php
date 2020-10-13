@@ -404,7 +404,7 @@ class DAO
     }
     
     public function creerUnPointDeTrace($unPointDeTrace) {
-        $txt_req = "INSERT INTO `tracegps_traces`(`id`, `dateDebut`, `dateFin`, `terminee`, `idUtilisateur`) VALUES (:id,:dateDebut,:dateFin,:terminee,:idUtilisateur)";
+        $txt_req = "INSERT INTO tracegps_traces(id, dateDebut, dateFin, terminee, idUtilisateur) VALUES ( :id, :dateDebut, :dateFin, :terminee, :idUtilisateur)";
         $req = $this->cnx->prepare($txt_req);
         // liaison de la requête et de ses paramètres
         $req->bindValue(":id", utf8_encode($unPointDeTrace->id), PDO::PARAM_INT);
@@ -1130,8 +1130,7 @@ class DAO
     
     
     
-   
-<<<<<<< HEAD
+
     // --------------------------------------------------------------------------------------
     // début de la zone attribuée au développeur 4 (xxxxxxxxxxxxxxxxxxxx) : lignes 950 à 1150
     // --------------------------------------------------------------------------------------
@@ -1155,12 +1154,7 @@ class DAO
     
     
     
-    
-    
-    
-=======
->>>>>>> branch 'master' of https://github.com/delasalle-sio-peschard-l/tracegps.git
-
+   
 } // fin de la classe DAO
 
 // ATTENTION : on ne met pas de balise de fin de script pour ne pas prendre le risque
