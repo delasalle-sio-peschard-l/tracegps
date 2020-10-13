@@ -344,10 +344,78 @@ class DAO
     
     
     // --------------------------------------------------------------------------------------
-    // début de la zone attribuée au développeur 1 (xxxxxxxxxxxxxxxxxxxx) : lignes 350 à 549
+    // début de la zone attribuée au développeur 1 (Maxent) : lignes 350 à 549
     // --------------------------------------------------------------------------------------
+    public function creerUneAutorisation($idAutorisant, $idAutorise) {
+        $txt_req = "INSERT INTO tracegps_autorisations(idAutorisant, idAutorise) VALUES (:idAutorisant,:idAutorise)";
+        $req = $this->cnx->prepare($txt_req);
+        // liaison de la requête et de ses paramètres
+        $req->bindValue(":idAutorisant", $idAutorisant, PDO::PARAM_INT);
+        $req->bindValue(":idAutorise", $idAutorise, PDO::PARAM_INT);
+        // extraction des données
+        $boolean = $req->execute();
+        return $boolean;
+    }
     
+    
+    public function supprimerUneAutorisation($idAutorisant, $idAutorise) {
+        $txt_req = "DELETE FROM tracegps_autorisations";
+        $txt_req .= " where idAutorisant = :idAutorisant AND idAutorise = :idAutorise";
+        $req = $this->cnx->prepare($txt_req);
+        // liaison de la requête et de ses paramètres
+        $req->bindValue(":idAutorisant", $idAutorisant, PDO::PARAM_INT);
+        $req->bindValue(":idAutorise", $idAutorise, PDO::PARAM_INT);
+        // extraction des données
+        $uneLigne = $req->execute();
+        return $uneLigne;
+    }
+    
+    public function getLesPointsDeTrace($idTrace) {
+        
+        $txt_req = "SELECT idTrace, id, latitude, longitude, altitude, dateHeure, rythmeCardio FROM tracegps_points WHERE idTrace = :id";
+        $req = $this->cnx->prepare($txt_req);
+        $req->bindValue(":id", $idTrace, PDO::PARAM_INT);
+        $req->execute();
+        $uneLigne = $req->fetch(PDO::FETCH_OBJ);
 
+        $lesPoints = array();
+        // tant qu'une ligne est trouvée :
+        while ($uneLigne) {
+            // création d'un objet Utilisateur
+            $unidTrace = utf8_encode($uneLigne->idTrace);
+            $id = utf8_encode($uneLigne->id);
+            $latitude = utf8_encode($uneLigne->latitude);
+            $longitude = utf8_encode($uneLigne->longitude);
+            $altitude = utf8_encode($uneLigne->altitude);
+            $dateHeure = utf8_encode($uneLigne->dateHeure);
+            $rythmeCardio = utf8_encode($uneLigne->rythmeCardio);
+            
+            $unPoint = new PointDeTrace($unidTrace, $id, $latitude, $longitude, $altitude, $dateHeure, $rythmeCardio, 0, 0, 0);
+            
+            // ajout de l'utilisateur à la collection
+            $lesPoints[] = $unPoint;
+            // extrait la ligne suivante
+            $uneLigne = $req->fetch(PDO::FETCH_OBJ);
+        }
+        // libère les ressources du jeu de données
+        $req->closeCursor();
+        // fourniture de la collection
+        return $lesPoints;
+    }
+    
+    public function creerUnPointDeTrace($unPointDeTrace) {
+        $txt_req = "INSERT INTO `tracegps_traces`(`id`, `dateDebut`, `dateFin`, `terminee`, `idUtilisateur`) VALUES (:id,:dateDebut,:dateFin,:terminee,:idUtilisateur)";
+        $req = $this->cnx->prepare($txt_req);
+        // liaison de la requête et de ses paramètres
+        $req->bindValue(":id", utf8_encode($unPointDeTrace->id), PDO::PARAM_INT);
+        $req->bindValue(":dateHeure", utf8_encode($unPointDeTrace->dateHeure), PDO::PARAM_STR);
+        $req->bindValue(":dateFin", utf8_encode($unPointDeTrace->dateFin), PDO::PARAM_STR);
+        $req->bindValue(":terminee", utf8_encode($unPointDeTrace->terminee), PDO::PARAM_INT);
+        $req->bindValue(":idUtilisateur", utf8_encode($unPointDeTrace->idUtilisateur), PDO::PARAM_INT);
+        // extraction des données
+        $boolean = $req->execute();
+        return $boolean;
+    }
     
     
     
@@ -946,7 +1014,6 @@ class DAO
     // --------------------------------------------------------------------------------------
     // début de la zone attribuée au développeur 4 (xxxxxxxxxxxxxxxxxxxx) : lignes 950 à 1150
     // --------------------------------------------------------------------------------------
-    
     
     
     
