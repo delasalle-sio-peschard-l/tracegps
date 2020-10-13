@@ -99,6 +99,17 @@ echo ('<br>');
 
 
 
+// test de la méthode getToutesLesTraces ----------------------------------------------------------
+// modifié par Jim le 14/8/2018
+echo "<h3>Test de getToutesLesTraces : </h3>";
+$lesTraces = $dao->getToutesLesTraces();
+$nbReponses = sizeof($lesTraces);
+echo "<p>Nombre de traces : " . $nbReponses . "</p>";
+// affichage des traces
+foreach ($lesTraces as $uneTrace)
+{   echo ($uneTrace->toString());
+echo ('<br>');
+}
 
 
 
