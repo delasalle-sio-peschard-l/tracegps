@@ -438,24 +438,23 @@ class DAO
             $unIdUtilisateur = utf8_encode($uneLigne->idUtilisateur);
             
             $uneTrace = new Trace($unId, $uneDateHeureDebut, $uneDateHeureFin, $terminee, $unIdUtilisateur);
-            $lesPoints = getLesPointsDeTrace($unId);
-            for($i = 0; $i < sizeof($lesPoints);$i++) {
-                $lesPoints[$i];
-                
+            $lesPoints = $this->getLesPointsDeTrace($unId);
+            
+            foreach ($lesPoints as $leNouveauPoint){
+                $uneTrace->ajouterPoint($leNouveauPoint);
             }
-            // ajout de l'utilisateur à la collection
             $lesTraces[] = $uneTrace;
             // extrait la ligne suivante
             $uneLigne = $req->fetch(PDO::FETCH_OBJ);
         }
+        $req->closeCursor();
         return $lesTraces;
     }
     
     
     
     
-    
-    
+   
     
     
     
@@ -708,34 +707,33 @@ class DAO
         
     }
     
-    public function getToutesLesTraces()
-    {
-        $txt_req = "SELECT id, dateDebut, dateFin, terminee, IdUtilisateur FROM `tracegps_traces`";
-        $req = $this->cnx->prepare($txt_req);   
-        // extraction des données
-        $req->execute();
-        $uneLigne = $req->fetch(PDO::FETCH_OBJ);
+//     public function getToutesLesTraces(){
+//         $txt_req = "SELECT id, dateDebut, dateFin, terminee, IdUtilisateur FROM `tracegps_traces`";
+//         $req = $this->cnx->prepare($txt_req);   
+//         // extraction des données
+//         $req->execute();
+//         $uneLigne = $req->fetch(PDO::FETCH_OBJ);
         
         
 
         
-        $ToutesLesTraces = array();
+//         $ToutesLesTraces = array();
         
-        while ($uneLigne)
-        {
+//         while ($uneLigne)
+//         {
             
             
-            $unId = utf8_encode($uneLigne->id);
-            $uneDateHeureDebut = utf8_encode($uneLigne->dateDebut);
-            $uneDateHeureFin = utf8_encode($uneLigne->dateFin);
-            $terminee = utf8_encode($uneLigne->terminee);
-            if($terminee == 1)
-            { $terminee = "Oui";} 
-            elseif($terminee == 0) $terminee = "Non";
-            $unIdUtilisateur = utf8_encode($uneLigne->IdUtilisateur);
+//             $unId = utf8_encode($uneLigne->id);
+//             $uneDateHeureDebut = utf8_encode($uneLigne->dateDebut);
+//             $uneDateHeureFin = utf8_encode($uneLigne->dateFin);
+//             $terminee = utf8_encode($uneLigne->terminee);
+//             if($terminee == 1)
+//             { $terminee = "Oui";} 
+//             elseif($terminee == 0) $terminee = "Non";
+//             $unIdUtilisateur = utf8_encode($uneLigne->IdUtilisateur);
                                     
                        
-            $uneTrace = new Trace ($unId, $uneDateHeureDebut, $uneDateHeureFin, $terminee, $unIdUtilisateur);
+//             $uneTrace = new Trace ($unId, $uneDateHeureDebut, $uneDateHeureFin, $terminee, $unIdUtilisateur);
             
             
 
@@ -743,14 +741,14 @@ class DAO
 
            
             
-            $ToutesLesTraces[] = $uneTrace;
+//             $ToutesLesTraces[] = $uneTrace;
             
-            $uneLigne = $req->fetch(PDO::FETCH_OBJ);
-        }
-        $req->closeCursor();
+//             $uneLigne = $req->fetch(PDO::FETCH_OBJ);
+//         }
+//         $req->closeCursor();
 
-        return $ToutesLesTraces;
-    }
+//         return $ToutesLesTraces;
+//     }
     
     
     public function creerUneTrace($uneTrace)
