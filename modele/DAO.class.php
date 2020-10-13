@@ -932,6 +932,12 @@ class DAO
                 $unIdUtilisateur = utf8_encode($uneLigne->idUtilisateur);
                 
                 $uneTrace = new Trace($unId, $uneDateHeureDebut, $uneDateHeureFin, $terminee, $unIdUtilisateur);
+                
+                $lesPoints = $this->getLesPointsDeTrace($idTrace);
+                
+                foreach ($lesPoints as $leNouveauPoint){
+                    $uneTrace->ajouterPoint($leNouveauPoint);
+                }
         }
         // libère les ressources du jeu de données
         $req->closeCursor();
@@ -939,7 +945,33 @@ class DAO
         return $uneTrace;
         }
     
-    
+        
+        public function supprimerUneTrace($idTrace) {
+            $uneTrace = $this->getUneTrace($idTrace);
+            if ($uneTrace == null) {
+                return false;
+            }
+            else {        
+                // préparation de la requête de suppression des autorisations
+                $txt_req1 = "delete from tracegps_traces" ;
+                $txt_req1 .= " where id = :idTrace";
+                $req1 = $this->cnx->prepare($txt_req1);
+                // liaison de la requête et de ses paramètres
+                $req1->bindValue("idTrace", utf8_decode($idTrace), PDO::PARAM_INT);
+                // exécution de la requête
+                $ok = $req1->execute();
+                
+                // préparation de la requête de suppression de l'utilisateur
+                $txt_req2 = "delete from tracegps_points" ;
+                $txt_req2 .= " where idTrace = :idTrace";
+                $req2 = $this->cnx->prepare($txt_req2);
+                // liaison de la requête et de ses paramètres
+                $req2->bindValue("idTrace", utf8_decode($idTrace), PDO::PARAM_STR);
+                // exécution de la requête
+                $ok = $req2->execute();
+                return $ok;
+            }
+        }
     
     
     
@@ -1131,35 +1163,7 @@ class DAO
     
     
    
-<<<<<<< HEAD
-    // --------------------------------------------------------------------------------------
-    // début de la zone attribuée au développeur 4 (xxxxxxxxxxxxxxxxxxxx) : lignes 950 à 1150
-    // --------------------------------------------------------------------------------------
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-=======
->>>>>>> branch 'master' of https://github.com/delasalle-sio-peschard-l/tracegps.git
+
 
 } // fin de la classe DAO
 
