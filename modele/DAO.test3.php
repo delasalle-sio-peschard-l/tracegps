@@ -82,6 +82,44 @@ else {
 }
 
 
+// test de la méthode autoriseAConsulter ----------------------------------------------------------
+// modifié par Jim le 13/8/2018
+echo "<h3>Test de autoriseAConsulter : </h3>";
+if ($dao->autoriseAConsulter(2, 3)) $autorise = "oui"; else $autorise = "non";
+echo "<p>L'utilisateur 2 autorise l'utilisateur 3 : <b>" . $autorise . "</b><br>";
+
+if ($dao->autoriseAConsulter(3, 2)) $autorise = "oui"; else $autorise = "non";
+echo "<p>L'utilisateur 3 autorise l'utilisateur 2 : <b>" . $autorise . "</b><br>";
+
+
+// test de la méthode getUneTrace -----------------------------------------------------------------
+// modifié par Jim le 14/8/2018
+echo "<h3>Test de getUneTrace : </h3>";
+$uneTrace = $dao->getUneTrace(2);
+if ($uneTrace) {
+    echo "<p>La trace 2 existe : <br>" . $uneTrace->toString() . "</p>";
+}
+else {
+    echo "<p>La trace 2 n'existe pas !</p>";
+}
+$uneTrace = $dao->getUneTrace(100);
+if ($uneTrace) {
+    echo "<p>La trace 100 existe : <br>" . $uneTrace->toString() . "</p>";
+}
+else {
+    echo "<p>La trace 100 n'existe pas !</p>";
+}
+
+// test de la méthode supprimerUneTrace -----------------------------------------------------------
+// modifié par Jim le 15/8/2018
+echo "<h3>Test de supprimerUneTrace : </h3>";
+$ok = $dao->supprimerUneTrace(22);
+if ($ok) {
+    echo "<p>Trace bien supprimée !</p>";
+}
+else {
+    echo "<p>Echec lors de la suppression de la trace !</p>";
+}
 
 
 
