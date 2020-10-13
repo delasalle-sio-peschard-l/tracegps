@@ -707,48 +707,6 @@ class DAO
         
     }
     
-//     public function getToutesLesTraces(){
-//         $txt_req = "SELECT id, dateDebut, dateFin, terminee, IdUtilisateur FROM `tracegps_traces`";
-//         $req = $this->cnx->prepare($txt_req);   
-//         // extraction des données
-//         $req->execute();
-//         $uneLigne = $req->fetch(PDO::FETCH_OBJ);
-        
-        
-
-        
-//         $ToutesLesTraces = array();
-        
-//         while ($uneLigne)
-//         {
-            
-            
-//             $unId = utf8_encode($uneLigne->id);
-//             $uneDateHeureDebut = utf8_encode($uneLigne->dateDebut);
-//             $uneDateHeureFin = utf8_encode($uneLigne->dateFin);
-//             $terminee = utf8_encode($uneLigne->terminee);
-//             if($terminee == 1)
-//             { $terminee = "Oui";} 
-//             elseif($terminee == 0) $terminee = "Non";
-//             $unIdUtilisateur = utf8_encode($uneLigne->IdUtilisateur);
-                                    
-                       
-//             $uneTrace = new Trace ($unId, $uneDateHeureDebut, $uneDateHeureFin, $terminee, $unIdUtilisateur);
-            
-            
-
-            
-
-           
-            
-//             $ToutesLesTraces[] = $uneTrace;
-            
-//             $uneLigne = $req->fetch(PDO::FETCH_OBJ);
-//         }
-//         $req->closeCursor();
-
-//         return $ToutesLesTraces;
-//     }
     
     
     public function creerUneTrace($uneTrace)
