@@ -47,7 +47,7 @@ class PointDeTrace extends Point
             $this -> dateHeure = $uneDateHeure;
             $this -> rythmeCardio = $unRythmeCardio;
             $this -> tempsCumule = $unTempsCumule;
-            $this -> distanceCumule = $uneDistanceCumulee;
+            $this -> distanceCumulee = $uneDistanceCumulee;
             $this -> vitesse = $uneVitesse;
     }
     // ------------------------------------------------------------------------------------------------------
