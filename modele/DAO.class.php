@@ -404,26 +404,57 @@ class DAO
     }
     
     public function creerUnPointDeTrace($unPointDeTrace) {
-        $txt_req = "INSERT INTO tracegps_traces(id, dateDebut, dateFin, terminee, idUtilisateur) VALUES ( :id, :dateDebut, :dateFin, :terminee, :idUtilisateur)";
+        $txt_req = "INSERT INTO tracegps_points(idTrace, id, latitude, longitude, altitude, dateHeure, rythmeCardio) VALUES ( :idTrace, :id, :latitude, :longitude, :altitude, :dateHeure, :rythmeCardio)";
         $req = $this->cnx->prepare($txt_req);
-        // liaison de la requête et de ses paramètres
-        $req->bindValue(":id", utf8_encode($unPointDeTrace->id), PDO::PARAM_INT);
-        $req->bindValue(":dateHeure", utf8_encode($unPointDeTrace->dateHeure), PDO::PARAM_STR);
-        $req->bindValue(":dateFin", utf8_encode($unPointDeTrace->dateFin), PDO::PARAM_STR);
-        $req->bindValue(":terminee", utf8_encode($unPointDeTrace->terminee), PDO::PARAM_INT);
-        $req->bindValue(":idUtilisateur", utf8_encode($unPointDeTrace->idUtilisateur), PDO::PARAM_INT);
+        // liaison de la requête et de ses paramètre
+        $req->bindValue(":idTrace", utf8_encode($unPointDeTrace->getIdTrace()), PDO::PARAM_STR);
+        $req->bindValue(":id", utf8_encode($unPointDeTrace->getId()), PDO::PARAM_STR);
+        $req->bindValue(":latitude", utf8_encode($unPointDeTrace->getLatitude()), PDO::PARAM_INT);
+        $req->bindValue(":longitude", utf8_encode($unPointDeTrace->getLongitude()), PDO::PARAM_INT);
+        $req->bindValue(":altitude", utf8_encode($unPointDeTrace->getAltitude()), PDO::PARAM_INT);
+        $req->bindValue(":dateHeure", utf8_encode($unPointDeTrace->getDateHeure()), PDO::PARAM_STR);
+        $req->bindValue(":rythmeCardio", utf8_encode($unPointDeTrace->getRythmeCardio()), PDO::PARAM_STR);
+        
         // extraction des données
         $boolean = $req->execute();
         return $boolean;
     }
     
+    public function getToutesLesTraces() {
+        $txt_req = "SELECT id, dateDebut, dateFin, terminee, idUtilisateur FROM tracegps_traces ORDER BY id DESC;";
+        $req = $this->cnx->prepare($txt_req);
+        $req->execute();
+        $uneLigne = $req->fetch(PDO::FETCH_OBJ);
+        
+        $lesTraces = array();
+        $lesPoints = array();
+        // tant qu'une ligne est trouvée :
+        while ($uneLigne) {
+            // création d'un objet Utilisateur
+            $unId = utf8_encode($uneLigne->id);
+            $uneDateHeureDebut = utf8_encode($uneLigne->dateDebut);
+            $uneDateHeureFin = utf8_encode($uneLigne->dateFin);
+            $terminee = utf8_encode($uneLigne->terminee);
+            $unIdUtilisateur = utf8_encode($uneLigne->idUtilisateur);
+            
+            $uneTrace = new Trace($unId, $uneDateHeureDebut, $uneDateHeureFin, $terminee, $unIdUtilisateur);
+            $lesPoints = $this->getLesPointsDeTrace($unId);
+            
+            foreach ($lesPoints as $leNouveauPoint){
+                $uneTrace->ajouterPoint($leNouveauPoint);
+            }
+            $lesTraces[] = $uneTrace;
+            // extrait la ligne suivante
+            $uneLigne = $req->fetch(PDO::FETCH_OBJ);
+        }
+        $req->closeCursor();
+        return $lesTraces;
+    }
     
     
     
     
-    
-    
-    
+   
     
     
     
@@ -719,10 +750,27 @@ class DAO
         
     }
     
-    
-    
-    
-    
+    public function terminerUneTrace($idTrace) {
+        $uneTrace = $this->getUneTrace($idTrace);
+        if ($uneTrace == null) {
+            return false;
+        }
+        else {
+            $date = getdate();
+            
+            $txt_req1 = "update tracegps_traces SET terminee = 1, dateFin = :date " ;
+            $txt_req1 .= " where id = :idTrace";
+            $req1 = $this->cnx->prepare($txt_req1);
+            // liaison de la requête et de ses paramètres
+            $req1->bindValue("idTrace", utf8_decode($idTrace), PDO::PARAM_INT);
+            $req1->bindValue("date",$date, PDO::PARAM_NULL);
+            // exécution de la requête
+            $ok = $req1->execute();
+            
+            
+        }
+    }
+
     
     
     
@@ -1030,6 +1078,12 @@ class DAO
                 $unIdUtilisateur = utf8_encode($uneLigne->idUtilisateur);
                 
                 $uneTrace = new Trace($unId, $uneDateHeureDebut, $uneDateHeureFin, $terminee, $unIdUtilisateur);
+                
+                $lesPoints = $this->getLesPointsDeTrace($idTrace);
+                
+                foreach ($lesPoints as $leNouveauPoint){
+                    $uneTrace->ajouterPoint($leNouveauPoint);
+                }
         }
         // libère les ressources du jeu de données
         $req->closeCursor();
@@ -1037,7 +1091,33 @@ class DAO
         return $uneTrace;
         }
     
-    
+        
+        public function supprimerUneTrace($idTrace) {
+            $uneTrace = $this->getUneTrace($idTrace);
+            if ($uneTrace == null) {
+                return false;
+            }
+            else {        
+                // préparation de la requête de suppression des autorisations
+                $txt_req1 = "delete from tracegps_traces" ;
+                $txt_req1 .= " where id = :idTrace";
+                $req1 = $this->cnx->prepare($txt_req1);
+                // liaison de la requête et de ses paramètres
+                $req1->bindValue("idTrace", utf8_decode($idTrace), PDO::PARAM_INT);
+                // exécution de la requête
+                $ok = $req1->execute();
+                
+                // préparation de la requête de suppression de l'utilisateur
+                $txt_req2 = "delete from tracegps_points" ;
+                $txt_req2 .= " where idTrace = :idTrace";
+                $req2 = $this->cnx->prepare($txt_req2);
+                // liaison de la requête et de ses paramètres
+                $req2->bindValue("idTrace", utf8_decode($idTrace), PDO::PARAM_STR);
+                // exécution de la requête
+                $ok = $req2->execute();
+                return $ok;
+            }
+        }
     
     
     
@@ -1229,30 +1309,6 @@ class DAO
     
     
 
-    // --------------------------------------------------------------------------------------
-    // début de la zone attribuée au développeur 4 (xxxxxxxxxxxxxxxxxxxx) : lignes 950 à 1150
-    // --------------------------------------------------------------------------------------
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-   
 } // fin de la classe DAO
 
 // ATTENTION : on ne met pas de balise de fin de script pour ne pas prendre le risque
