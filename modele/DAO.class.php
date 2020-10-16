@@ -451,7 +451,37 @@ class DAO
         return $lesTraces;
     }
     
-    
+    public function getLesTraces($idUtilisateur) {
+        $txt_req = "SELECT id, dateDebut, dateFin, terminee, idUtilisateur FROM tracegps_traces WHERE idUtilisateur = :idUtilisateur ORDER BY id DESC;";
+        $req = $this->cnx->prepare($txt_req);
+        $req->bindValue(":idUtilisateur", $idUtilisateur, PDO::PARAM_INT);
+        $req->execute();
+        $uneLigne = $req->fetch(PDO::FETCH_OBJ);
+        
+        $lesTraces = array();
+        $lesPoints = array();
+        // tant qu'une ligne est trouvée :
+        while ($uneLigne) {
+            // création d'un objet Utilisateur
+            $unId = utf8_encode($uneLigne->id);
+            $uneDateHeureDebut = utf8_encode($uneLigne->dateDebut);
+            $uneDateHeureFin = utf8_encode($uneLigne->dateFin);
+            $terminee = utf8_encode($uneLigne->terminee);
+            $unIdUtilisateur = utf8_encode($uneLigne->idUtilisateur);
+            
+            $uneTrace = new Trace($unId, $uneDateHeureDebut, $uneDateHeureFin, $terminee, $unIdUtilisateur);
+            $lesPoints = $this->getLesPointsDeTrace($unId);
+            
+            foreach ($lesPoints as $leNouveauPoint){
+                $uneTrace->ajouterPoint($leNouveauPoint);
+            }
+            $lesTraces[] = $uneTrace;
+            // extrait la ligne suivante
+            $uneLigne = $req->fetch(PDO::FETCH_OBJ);
+        }
+        $req->closeCursor();
+        return $lesTraces;
+    }
     
     
    
