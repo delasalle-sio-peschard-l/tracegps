@@ -229,7 +229,7 @@ function creerFluxJSON($msg, $uneTrace)
         }
 
      */
-    
+    //PAS FINIS
     if ($uneTrace == null) {
         // construction de l'élément "data"
         $elt_data = ["reponse" => $msg];
