@@ -767,38 +767,119 @@ class DAO
         
         
         
-        $txt_req = "SELECT MAX(id) AS NouvId";
+        $txt_req = "SELECT (MAX(id) + 1) AS NouvId";
         $txt_req .= " FROM tracegps_traces ";
         $req2 = $this->cnx->prepare($txt_req);
         
         $req2->execute();
         $uneLigne = $req2->fetch(PDO::FETCH_OBJ);
         
-        $uneTrace->setId(($uneLigne->NouvId)+1);
+        $uneTrace->setId(($uneLigne->NouvId));
         
+        $uneLigne = $req2->fetch(PDO::FETCH_OBJ);
         return true;
         
     }
     
     public function terminerUneTrace($idTrace) {
         $uneTrace = $this->getUneTrace($idTrace);
-        if ($uneTrace == null) {
-            return false;
+        if ($uneTrace->getNombrePoints() == 0) {
+            $date = new DateTime();
         }
         else {
-            $date = getdate();
+            $Points = array();
+            $Points = $this->getLesPointsDeTrace($idTrace);
+            $pointfin =  $Points[$uneTrace->getNombrePoints()-1];
+            $date = $pointfin->getDateHeure();
+            
+            
             
             $txt_req1 = "update tracegps_traces SET terminee = 1, dateFin = :date " ;
             $txt_req1 .= " where id = :idTrace";
             $req1 = $this->cnx->prepare($txt_req1);
             // liaison de la requête et de ses paramètres
             $req1->bindValue("idTrace", utf8_decode($idTrace), PDO::PARAM_INT);
-            $req1->bindValue("date",$date, PDO::PARAM_NULL);
+            $req1->bindValue("date",$date, PDO::PARAM_STR);
             // exécution de la requête
-            $ok = $req1->execute();
+            $req1->execute();
             
             
         }
+    }
+    
+    public function getLesTracesAutorisees($idUtilisateur) {
+        $txt_req = "Select id, dateDebut, dateFin, terminee, idUtilisateur, pseudo ,nbPoints
+ from tracegps_vue_traces INNER JOIN tracegps_autorisations ON tracegps_vue_traces.id =tracegps_autorisations.idAutorise
+where idAutorise = :idUtilisateur";
+        
+        //Select idAutorise, pseudo,mdpSha1 ,adrMail,numTel,niveau,dateCreation
+        //from tracegps_autorisations INNER JOIN tracegps_utilisateurs
+        //ON tracegps_autorisations.idAutorise = tracegps_utilisateurs.id
+        //where idAutorise = 11
+        $req = $this->cnx->prepare($txt_req);
+        $req->bindValue(":idUtilisateur", $idUtilisateur, PDO::PARAM_INT);
+        $req->execute();
+        $uneLigne = $req->fetch(PDO::FETCH_OBJ);
+        
+
+        
+        $lesTraces = array();
+        $lesPoints = array();
+        // tant qu'une ligne est trouvée :
+        while ($uneLigne) {
+            // création d'un objet Utilisateur
+            $unId = utf8_encode($uneLigne->id);
+            $uneDateHeureDebut = utf8_encode($uneLigne->dateDebut);
+            $uneDateHeureFin = utf8_encode($uneLigne->dateFin);
+            $terminee = utf8_encode($uneLigne->terminee);
+            $unIdUtilisateur = utf8_encode($uneLigne->idUtilisateur);
+            
+            $uneTrace = new Trace($unId, $uneDateHeureDebut, $uneDateHeureFin, $terminee, $unIdUtilisateur);
+            $lesPoints = $this->getLesPointsDeTrace($unId) ;
+            
+            foreach ($lesPoints as $leNouveauPoint){
+                $uneTrace->ajouterPoint($leNouveauPoint);
+            }
+            $lesTraces[] = $uneTrace;
+            // extrait la ligne suivante
+            $uneLigne = $req->fetch(PDO::FETCH_OBJ);
+        }
+        $req->closeCursor();
+        
+        $txt_req = "Select id, dateDebut, dateFin, terminee, idUtilisateur, pseudo ,nbPoints
+ from tracegps_vue_traces INNER JOIN tracegps_autorisations ON tracegps_vue_traces.id =tracegps_autorisations.idAutorise
+where idAutorise = :idUtilisateur";
+        
+        //Select idAutorise, pseudo,mdpSha1 ,adrMail,numTel,niveau,dateCreation
+        //from tracegps_autorisations INNER JOIN tracegps_utilisateurs
+        //ON tracegps_autorisations.idAutorise = tracegps_utilisateurs.id
+        //where idAutorise = 11
+        $req2 = $this->cnx->prepare($txt_req);
+        $req2->bindValue(":idUtilisateur", $idUtilisateur, PDO::PARAM_INT);
+        $req2->execute();
+        $uneLigne = $req2->fetch(PDO::FETCH_OBJ);
+        
+        while ($uneLigne) {
+            // création d'un objet Utilisateur
+            $unId = utf8_encode($uneLigne->id);
+            $uneDateHeureDebut = utf8_encode($uneLigne->dateDebut);
+            $uneDateHeureFin = utf8_encode($uneLigne->dateFin);
+            $terminee = utf8_encode($uneLigne->terminee);
+            $unIdUtilisateur = utf8_encode($uneLigne->idUtilisateur);
+            
+            $uneTrace = new Trace($unId, $uneDateHeureDebut, $uneDateHeureFin, $terminee, $unIdUtilisateur);
+            $lesPoints = $this->getLesPointsDeTrace($unId) ;
+            
+            foreach ($lesPoints as $leNouveauPoint){
+                $uneTrace->ajouterPoint($leNouveauPoint);
+            }
+            $lesTraces[] = $uneTrace;
+            // extrait la ligne suivante
+            $uneLigne = $req->fetch(PDO::FETCH_OBJ);
+        }
+        $req2->closeCursor();
+        
+        return $lesTraces;
     }
 
     
