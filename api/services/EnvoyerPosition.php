@@ -19,18 +19,18 @@ $dao = new DAO();
 // Récupération des données transmises
 $pseudo = ( empty($this->request['pseudo'])) ? "" : $this->request['pseudo'];
 $mdpSha1 = ( empty($this->request['mdp'])) ? "" : $this->request['mdp'];
-$idTrace = ( empty($this->request['idtrace'])) ? "" : $this->request['idtrace'];
-$dateHeure = ( empty($this->request['dateheure'])) ? "" : $this->request['dateheure'];
+$idTrace = ( empty($this->request['idTrace'])) ? "" : $this->request['idTrace'];
+$dateHeure = ( empty($this->request['dateHeure'])) ? "" : $this->request['dateHeure'];
 $latitude = ( empty($this->request['latitude'])) ? "" : $this->request['latitude'];
 $longitude = ( empty($this->request['longitude'])) ? "" : $this->request['longitude'];
 $altitude = ( empty($this->request['altitude'])) ? "" : $this->request['altitude'];
-$rythmeCardio = ( empty($this->request['rythmecardio'])) ? "" : $this->request['rythmecardio'];
+$rythmeCardio = ( empty($this->request['rythmeCardio'])) ? "" : $this->request['rythmeCardio'];
 $lang = ( empty($this->request['lang'])) ? "" : $this->request['lang'];
 
 // "xml" par défaut si le paramètre lang est absent ou incorrect
 if ($lang != "json") $lang = "xml";
 
-
+$id = 0;
 
 // La méthode HTTP utilisée doit être GET
 if ($this->getMethodeRequete() != "GET")
@@ -39,7 +39,7 @@ if ($this->getMethodeRequete() != "GET")
 }
 else {
     // Les paramètres doivent être présents
-    if ( $pseudo == "" || $mdpSha1 == "" )
+    if ( $pseudo == "" || $mdpSha1 == "" || $idTrace == "" || $dateHeure == "" || $latitude == "" || $longitude == "" || $altitude == "" || $rythmeCardio == "" )
     {	$msg = "Erreur : données incomplètes.";
         $code_reponse = 400;
     }
@@ -51,7 +51,7 @@ else {
     	else 
     	{	$idutilisateur = $dao->getUnUtilisateur($pseudo)->getId();
     	
-    	    if ($idTrace == 0) {
+    	    if ($dao->getUneTrace($idTrace) == null) {
     			$msg = "Le numéro de trace n'existe pas.";
     			$code_reponse = 401;
     	    }
@@ -66,10 +66,21 @@ else {
     	        $code_reponse = 401;
     	    }
     	    else
-    	    {
+    	    {           	        
     	        $id = $dao->getUneTrace($idTrace)->getNombrePoints() + 1 ;
-    	        $unPointDeTrace = new PointDeTrace($idTrace, $id, $latitude, $longitude, $altitude, $dateHeure, $rythmeCardio, null, null, null);
-    	        $dao->creerUnPointDeTrace($unPointDeTrace);
+    	        $unPointDeTrace = new PointDeTrace($idTrace, $id, $latitude, $longitude, $altitude, $dateHeure, $rythmeCardio, 0, 0, 0);
+    	        
+    	        if($dao->creerUnPointDeTrace($unPointDeTrace) != false)
+    	        {
+    	            $dao->creerUnPointDeTrace($unPointDeTrace);   
+    	            $msg = "Point créé.";
+    	            $code_reponse = 200;
+    	        }
+    	        else
+    	        {
+    	            $msg = "Erreur : problème lors de l'enregistrement du point";
+    	            $code_reponse = 401;
+    	        }
     	    }
     	}
     }
@@ -80,11 +91,11 @@ unset($dao);
 // création du flux en sortie
 if ($lang == "xml") {
     $content_type = "application/xml; charset=utf-8";      // indique le format XML pour la réponse
-    $donnees = creerFluxXML($msg);
+    $donnees = creerFluxXML($msg,$id);
 }
 else {
     $content_type = "application/json; charset=utf-8";      // indique le format Json pour la réponse
-    $donnees = creerFluxJSON($msg);
+    $donnees = creerFluxJSON($msg,$id);
 }
 
 // envoi de la réponse HTTP
@@ -96,7 +107,7 @@ exit;
 // ================================================================================================
  
 // création du flux XML en sortie
-function creerFluxXML($msg)
+function creerFluxXML($msg,$id)
 {	
     /* Exemple de code XML
         <?xml version="1.0" encoding="UTF-8"?>
@@ -137,7 +148,7 @@ function creerFluxXML($msg)
 	$doc->encoding = 'UTF-8';
 	
 	// crée un commentaire et l'encode en UTF-8
-	$elt_commentaire = $doc->createComment('Service web GetTousLesUtilisateurs - BTS SIO - Lycée De La Salle - Rennes');
+	$elt_commentaire = $doc->createComment('Service web EnvoyerPosition - BTS SIO - Lycée De La Salle - Rennes');
 	// place ce commentaire à la racine du document XML
 	$doc->appendChild($elt_commentaire);
 	
@@ -150,13 +161,12 @@ function creerFluxXML($msg)
 	$elt_data->appendChild($elt_reponse);
 	
 	// traitement des utilisateurs
-	    // place l'élément 'donnees' dans l'élément 'data'
+	// place l'élément 'donnees' dans l'élément 'data'
 	 $elt_donnees = $doc->createElement('donnees');
 	 $elt_data->appendChild($elt_donnees);
 	    
-	    // place l'élément 'lesUtilisateurs' dans l'élément 'donnees'
-	  $elt_lesUtilisateurs = $doc->createElement('id');
-	  $elt_donnees->appendChild($elt_id);
+	 $elt_id = $doc->createElement('id',$id);
+	 $elt_donnees->appendChild($elt_id);
 
 	// Mise en forme finale
 	$doc->formatOutput = true;
@@ -168,7 +178,7 @@ function creerFluxXML($msg)
 // ================================================================================================
 
 // création du flux JSON en sortie
-function creerFluxJSON($msg)
+function creerFluxJSON($msg,$id)
 {
     /* Exemple de code JSON
         {
@@ -202,30 +212,13 @@ function creerFluxJSON($msg)
      */
     
 
-    if (sizeof($lesUtilisateurs) == 0) {
+    if ($id == 0) {
         // construction de l'élément "data"
         $elt_data = ["reponse" => $msg];
     }
     else {
-        // construction d'un tableau contenant les utilisateurs
-        $lesObjetsDuTableau = array();
-        foreach ($lesUtilisateurs as $unUtilisateur)
-        {	// crée une ligne dans le tableau
-            $unObjetUtilisateur = array();
-            $unObjetUtilisateur["id"] = $unUtilisateur->getId();
-            $unObjetUtilisateur["pseudo"] = $unUtilisateur->getPseudo();
-            $unObjetUtilisateur["adrMail"] = $unUtilisateur->getAdrMail();
-            $unObjetUtilisateur["numTel"] = $unUtilisateur->getNumTel();
-            $unObjetUtilisateur["niveau"] = $unUtilisateur->getNiveau();
-            $unObjetUtilisateur["dateCreation"] = $unUtilisateur->getDateCreation();
-            $unObjetUtilisateur["nbTraces"] = $unUtilisateur->getNbTraces();
-            if ($unUtilisateur->getNbTraces() > 0)
-            {   $unObjetUtilisateur["dateDerniereTrace"] = $unUtilisateur->getDateDerniereTrace();
-            }
-            $lesObjetsDuTableau[] = $unObjetUtilisateur;
-        }
-        // construction de l'élément "lesUtilisateurs"
-        $elt_utilisateur = ["lesUtilisateurs" => $lesObjetsDuTableau];
+
+        $elt_id = ["id" => $id];
         
         // construction de l'élément "data"
         $elt_data = ["reponse" => $msg, "donnees" => $elt_utilisateur];
