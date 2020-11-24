@@ -238,6 +238,15 @@ function creerFluxJSON($msg, $uneTrace)
         // construction d'un tableau contenant les utilisateurs
         $lesPoints = $uneTrace->getLesPointsDeTrace();
         $lesObjetsDuTableau = array();
+        
+        $laTrace = array();
+        $laTrace["id"] = $uneTrace->getId();
+        $laTrace["dateHeureDebut"] = $uneTrace->getDateHeureDebut();
+        $laTrace["terminee"] = $uneTrace->getTerminee();
+        $laTrace["dateHeureFin"] = $uneTrace->getDateHeureFin();
+        $laTrace["idUtilisateur"] = $uneTrace->getIdUtilisateur();
+        $elt_trace = ["trace" => $laTrace];
+        
         foreach ($lesPoints as $unPoint)
         {	// crée une ligne dans le tableau
             $unObjetPoint = array();
@@ -247,16 +256,13 @@ function creerFluxJSON($msg, $uneTrace)
             $unObjetPoint["Altitude"] = $unPoint->getAltitude();
             $unObjetPoint["DateHeure"] = $unPoint->getDateHeure();
             $unObjetPoint["RythmeCardio"] = $unPoint->getRythmeCardio();
-            if ($unPoint->getNbTraces() > 0)
-            {   $unObjetPoint["dateDerniereTrace"] = $unPoint->getDateDerniereTrace();
-            }
             $lesObjetsDuTableau[] = $unObjetPoint;
         }
         // construction de l'élément "lesUtilisateurs"
         $elt_utilisateur = ["LesPoints" => $lesObjetsDuTableau];
         
         // construction de l'élément "data"
-        $elt_data = ["reponse" => $msg, "donnees" => $elt_utilisateur];
+        $elt_data = ["reponse" => $msg, "donnees" => $elt_trace + $elt_utilisateur];
     }
     
     // construction de la racine
@@ -267,4 +273,4 @@ function creerFluxJSON($msg, $uneTrace)
 }
 
 // ================================================================================================
-?>
+
