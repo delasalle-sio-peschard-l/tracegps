@@ -28,16 +28,24 @@ else {
     }
     else
     {	
-        if ( $dao->getNiveauConnexion($pseudo, $mdpSha1) <= 0) {
+        if ( $dao->getNiveauConnexion($pseudo, $mdpSha1) == 0) {
             $msg = "Erreur : authentification incorrecte.";
             $code_reponse = 401;
         }
         else
         {	
-            $utilisateur = $dao->getUnUtilisateur($pseudo);
             $msg = "Trace créée.";
-            $code_reponse = 300;
-            $uneTrace = new Trace($utilisateur->getNbTraces(), strftime('%Y-%m-%d %H:%M:%S'), null, 0, $utilisateur->getId());	
+            $code_reponse = 200;
+            
+            $unId = 0;
+            $uneDateHeureDebut = date('Y-m-d H:i:s', time());
+            $uneDateHeureFin = null;
+            $terminee = 0;
+            $unIdUtilisateur = $dao->getUnUtilisateur($pseudo)->getId();
+            
+            $uneTrace = new Trace($unId, $uneDateHeureDebut, $uneDateHeureFin, $terminee, $unIdUtilisateur);	
+            
+            $ok = $dao->creerUneTrace($uneTrace);
         }
     }
 }

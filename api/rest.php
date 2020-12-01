@@ -20,6 +20,7 @@ class Rest {
 	//    $donnees : les données encodées (formatées en Json ou en XML)
 	protected function envoyerReponse($code_reponse, $content_type, $donnees) {
         $this->codeReponse = $code_reponse;       // mémorise le code de la réponse HTTP
+        $this->codeReponse = 200;                 // pour permettre aux API C# et Java de traiter toutes les réponses
         $this->contentType = $content_type;       // mémorise le le format de la réponse HTTP
         $this->preparerEntetes();                 // prépare les entêtes HTTP de la réponse HTTP
         echo $donnees;                            // envoie les données dans le corps de la réponse HTTP
