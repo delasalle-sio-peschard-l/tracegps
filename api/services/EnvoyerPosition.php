@@ -49,30 +49,30 @@ else {
     		$code_reponse = 401;
         }
     	else 
-    	{	$idutilisateur = $dao->getUnUtilisateur($pseudo)->getId();
-    	
-    	    if ($dao->getUneTrace($idTrace) == null) {
+    	{  $idutilisateur = $dao->getUnUtilisateur($pseudo)->getId();
+    	   $uneTrace = $dao->getUneTrace($idTrace);
+    	   if ($uneTrace == null) {
     			$msg = "Le numéro de trace n'existe pas.";
     			$code_reponse = 401;
     	    }
-    	    elseif ( in_array($dao->getUneTrace($idTrace), $dao->getLesTraces($idutilisateur)) != true  ) 
+    	    elseif ( $uneTrace->getIdUtilisateur() != $idutilisateur ) 
     	    {
-    	        $msg = "Le numéro de trace ne correspond pas a cet utilisateur.";
+    	        $msg = "Le numéro de trace ne correspond pas à cet utilisateur.";
     	        $code_reponse = 401;
     	    }
-    	    elseif ($dao->getUneTrace($idTrace)->getTerminee() == true)
+    	    elseif ($uneTrace->getTerminee() == true)
     	    {
     	        $msg = "La trace est déjà terminée";
     	        $code_reponse = 401;
     	    }
     	    else
     	    {           	        
-    	        $id = $dao->getUneTrace($idTrace)->getNombrePoints() + 1 ;
+    	        $id = $uneTrace->getNombrePoints() + 1 ;
     	        $unPointDeTrace = new PointDeTrace($idTrace, $id, $latitude, $longitude, $altitude, $dateHeure, $rythmeCardio, 0, 0, 0);
     	        
-    	        if($dao->creerUnPointDeTrace($unPointDeTrace) != false)
-    	        {
-    	            $dao->creerUnPointDeTrace($unPointDeTrace);   
+    	        $ok = $dao->creerUnPointDeTrace($unPointDeTrace);
+    	        if($ok == true)
+    	        {  
     	            $msg = "Point créé.";
     	            $code_reponse = 200;
     	        }
@@ -91,11 +91,11 @@ unset($dao);
 // création du flux en sortie
 if ($lang == "xml") {
     $content_type = "application/xml; charset=utf-8";      // indique le format XML pour la réponse
-    $donnees = creerFluxXML($msg,$id);
+    $donnees = creerFluxXML($msg, $id);
 }
 else {
     $content_type = "application/json; charset=utf-8";      // indique le format Json pour la réponse
-    $donnees = creerFluxJSON($msg,$id);
+    $donnees = creerFluxJSON($msg, $id);
 }
 
 // envoi de la réponse HTTP
@@ -221,7 +221,7 @@ function creerFluxJSON($msg,$id)
         $elt_id = ["id" => $id];
         
         // construction de l'élément "data"
-        $elt_data = ["reponse" => $msg, "donnees" => $elt_utilisateur];
+        $elt_data = ["reponse" => $msg, "donnees" => $elt_id];
     }
     
     // construction de la racine
