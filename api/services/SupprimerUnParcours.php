@@ -45,12 +45,13 @@ else {
         }
     	else 
     	{	$idutilisateur = $dao->getUnUtilisateur($pseudo)->getId();
+    	    $uneTrace = $dao->getUneTrace($idTrace);
     	
     	    if ($dao->getUneTrace($idTrace) == null) {
     			$msg = "Parcours inexistant.";
     			$code_reponse = 401;
     	    }
-    	    elseif ( in_array($dao->getUneTrace($idTrace), $dao->getLesTraces($idutilisateur)) != true  ) 
+    	    elseif ( $uneTrace->getIdUtilisateur() != $idutilisateur ) 
     	    {
     	        $msg = "Vous n'êtes pas le propriétaire de ce parcours";
     	        $code_reponse = 401;
@@ -58,8 +59,8 @@ else {
     	    else
     	    {           	        
     	        
-    	        
-    	        if($dao->supprimerUneTrace($unPointDeTrace) != false)
+    	        $ok = $dao->supprimerUneTrace($idTrace);
+    	        if($ok == $idTrace)
     	        {
     	            $msg = "Point supprimé.";
     	            $code_reponse = 200;
