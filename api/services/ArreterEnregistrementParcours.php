@@ -15,9 +15,9 @@ $idTrace = ( empty($this->request['idTrace'])) ? "" : $this->request['idTrace'];
 if ($lang != "json") $lang = "xml";
 
 $uneTrace = null;
-// La méthode HTTP utilisée doit être GET
+// La méthode HTTP utilisée doit être GETv
 if ($this->getMethodeRequete() != "GET")
-{	
+{
     $msg = "Erreur : méthode HTTP incorrecte.";
     $code_reponse = 406;
 }
@@ -28,36 +28,36 @@ else {
         $code_reponse = 400;
     }
     else
-    {	
+    {
         if ($dao->getNiveauConnexion($pseudo, $mdpSha1) <= 0) {
             $msg = "Erreur : authentification incorrecte.";
             $code_reponse = 401;
         }
         else
-        {	
+        {
             if($dao->getUneTrace($idTrace) == null) {
-               $msg = "Erreur : parcours inexistant.";
-               $code_reponse = 401;
+                $msg = "Erreur : parcours inexistant.";
+                $code_reponse = 401;
             }
-            else 
+            else
             {   $idUtilisateur = $dao->getUnUtilisateur($pseudo)->getId();
-                if( in_array($dao->getUneTrace($idTrace), $dao->getLesTraces($idUtilisateur)) != true  ) {
-                    $msg = "Vous n'êtes pas le propriétaire de ce parcours";
+            if( in_array($dao->getUneTrace($idTrace), $dao->getLesTraces($idUtilisateur)) != true  ) {
+                $msg = "Vous n'êtes pas le propriétaire de ce parcours";
+                $code_reponse = 401;
+            }
+            else
+            {
+                $uneTrace = $dao->getUneTrace($idTrace);
+                if($uneTrace->getTerminee() == 1) {
+                    $msg = "Cette trace est déjà terminée.";
                     $code_reponse = 401;
                 }
-                else 
-                {
-                    $uneTrace = $dao->getUneTrace($idTrace);
-                    if($uneTrace->getTerminee() == 1) {
-                        $msg = "Cette trace est déjà terminée.";
-                        $code_reponse = 401;
-                    }
-                    else {
-                        $dao->terminerUneTrace($idTrace);
-                        $msg = "Enregistrement terminé.";
-                        $code_reponse = 200;
-                    }
+                else {
+                    $dao->terminerUneTrace($idTrace);
+                    $msg = "Enregistrement terminé.";
+                    $code_reponse = 200;
                 }
+            }
             }
         }
     }
@@ -86,11 +86,11 @@ exit;
 function creerFluxXML($msg, $uneTrace)
 {
     /* Exemple de code XML
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!--Service web ArreterEnregistrementParcours - BTS SIO - Lycée De La Salle - Rennes-->
-    <data>
-      <reponse>............. (message retourné par le service web) ...............</reponse>
-    </data>
+     <?xml version="1.0" encoding="UTF-8"?>
+     <!--Service web ArreterEnregistrementParcours - BTS SIO - Lycée De La Salle - Rennes-->
+     <data>
+     <reponse>............. (message retourné par le service web) ...............</reponse>
+     </data>
      */
     
     // crée une instance de DOMdocument (DOM : Document Object Model)
@@ -125,11 +125,11 @@ function creerFluxXML($msg, $uneTrace)
 function creerFluxJSON($msg, $uneTrace)
 {
     /* Exemple de code JSON
-        {
-            "data": {
-                "reponse": "............. (message retourné par le service web) ..............."
-            }
-        }
+     {
+     "data": {
+     "reponse": "............. (message retourné par le service web) ..............."
+     }
+     }
      */
     if ($uneTrace == null) {
         // construction de l'élément "data"
@@ -143,4 +143,3 @@ function creerFluxJSON($msg, $uneTrace)
 }
 
 // ================================================================================================
-
